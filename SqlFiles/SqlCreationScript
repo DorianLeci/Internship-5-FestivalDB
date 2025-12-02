@@ -1,20 +1,23 @@
 CREATE TABLE Country(
 	CountryId SERIAL PRIMARY KEY,
-	Name VARCHAR(40)
+	Name VARCHAR(40) NOT NULL
 );
 
 CREATE TABLE City(
 	CityId SERIAL PRIMARY KEY,
-	Name VARCHAR(40),
+	Name VARCHAR(40) NOT NULL,
 	PostalCode VARCHAR(10),
-	CountryId INT REFERENCES Country(CountryId)
+	CountryId INT NOT NULL REFERENCES Country(CountryId)
+	
 		
 );
 
 CREATE TABLE Visitor(
 	VisitorId SERIAL PRIMARY KEY,
-	Name VARCHAR(30),
-	Surname VARCHAR(30),
+	Name VARCHAR(30) NOT NULL,
+	Surname VARCHAR(30) NOT NULL,
 	Email VARCHAR(50),
-	BirthDate DATE
+	BirthDate DATE,
+	CityId INT NOT NULL REFERENCES City(CityId)
 );
+
