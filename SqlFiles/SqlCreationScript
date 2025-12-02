@@ -82,8 +82,8 @@ CREATE TABLE festival_performer(
 	)
 );
 
-ALTER TABLE bAND
-ADD COLUMN number_of_members INT 
+ALTER TABLE band
+ADD COLUMN number_of_members INT;
 
 
 CREATE TYPE festival_location AS ENUM ('Main','Forest','Beach');
@@ -105,12 +105,37 @@ CREATE TABLE performance(
 	festival_id INT NOT NULL,
 	start_time TIMESTAMP NOT NULL,
 	end_time TIMESTAMP NOT NULL,
-	stage_id INT NOT NULL REFERENCES stage(stage_idd),
+	stage_id INT NOT NULL REFERENCES stage(stage_id),
 	
 	FOREIGN KEY(performer_id,festival_id) REFERENCES festival_performer(performer_id,festival_id)
 );
 
-ALTER TABLE Performance 
+ALTER TABLE performance ADD CONSTRAINT no_overlapping_performer
+	EXCLUDE USING gist(
+		performer_id WITH=,
+		tsrange(start_time,end_time,'[]') WITH &&
+	);
+
+ALTER TABLE performance ADD CONSTRAINT no_overlapping_on_stage
+	EXCLUDE USING gist(
+		stage_id WITH=,
+		tsrange(start_time,end_time,'[]') WITH &&
+	);
+
+
+CREATE TYPE type_of_ticket AS ENUM ('jednodnevna','festivalska','VIP','kamp')
+CREATE TYPE ticket_validity AS ENUM('jedan_dan','cijeli_festival')
+
+CREATE TABLE ticket_type(
+	ticket_type_id SERIAL PRIMARY KEY,
+	validity ticket_validity NOT NULL
+);
+
+CREATE TABLE ticket(
+	ticket_id SERIAL PRIMARY KEY,
+	
+);
+
 
 
 
