@@ -1,86 +1,118 @@
-CREATE TABLE Country(
-	CountryId SERIAL PRIMARY KEY,
-	Name VARCHAR(40) NOT NULL
+CREATE TABLE country(
+	country_id SERIAL PRIMARY KEY,
+	name VARCHAR(40) NOT NULL
 );
 
-CREATE TABLE City(
-	CityId SERIAL PRIMARY KEY,
-	Name VARCHAR(40) NOT NULL,
-	PostalCode VARCHAR(10),
-	CountryId INT NOT NULL REFERENCES Country(CountryId)
+CREATE TABLE city(
+	city_id SERIAL PRIMARY KEY,
+	name VARCHAR(40) NOT NULL,
+	postal_code VARCHAR(10),
+	country_id INT NOT NULL REFERENCES country(country_id)
 	
 		
 );
 
 CREATE TABLE Visitor(
-	VisitorId SERIAL PRIMARY KEY,
-	Name VARCHAR(30) NOT NULL,
-	Surname VARCHAR(30) NOT NULL,
-	Email VARCHAR(50),
-	BirthDate DATE,
-	CityId INT NOT NULL REFERENCES City(CityId)
+	visitor_id SERIAL PRIMARY KEY,
+	name VARCHAR(30) NOT NULL,
+	surname VARCHAR(30) NOT NULL,
+	email VARCHAR(50),
+	birthDate DATE,
+	city_id INT NOT NULL REFERENCES city(city_id)
 );
 
-CREATE TYPE FestivalStatus AS ENUM('Planiran','Aktivan','Zavrsen');
+CREATE TYPE festival_status AS ENUM('Planiran','Aktivan','Zavrsen');
 
-CREATE TABLE Festival(
-	FestivalId SERIAL PRIMARY KEY,
-	Name VARCHAR(30) NOT NULL,
-	Capacity INT NOT NULL,
-	StartDate DATE NOT NULL,
-	EndDate DATE NOT NULL,
-	HasVisitorCamp BOOL,
-	Status FestivalStatus NOT NULL,
-	CityId INT NOT NULL REFERENCES City(CityId)	
+CREATE TABLE festival(
+	festival_id SERIAL PRIMARY KEY,
+	name VARCHAR(30) NOT NULL,
+	capacity INT NOT NULL,
+	start_date DATE NOT NULL,
+	end_date DATE NOT NULL,
+	has_visitor_camp BOOL,
+	status festival_status NOT NULL,
+	city_id INT NOT NULL REFERENCES city(city_id)	
 );
 
 
 
-CREATE TYPE MusicGenre AS ENUM(
+CREATE TYPE music_genre AS ENUM(
  'Rock','Pop','Jazz','House','HipHop','Classical','Blues','Country','Metal','Soul','Reggae','Funk','Techno','Disco');
  
-CREATE TABLE Performer(
-	PerformerId SERIAL PRIMARY KEY,
-	Name VARCHAR(30) NOT NULL,
-	Genre MusicGenre,
-	IsActive BOOL,
-	CountryId INT NOT NULL REFERENCES Country(CountryId)
+CREATE TABLE performer(
+	performer_id SERIAL PRIMARY KEY,
+	name VARCHAR(30) NOT NULL,
+	genre music_genre,
+	is_active BOOL,
+	country_id INT NOT NULL REFERENCES country(country_id)
 );
 
-CREATE TABLE SoloPeformer(
-	SoloPerformerId SERIAL PRIMARY KEY,
-	PerformerID INT UNIQUE REFERENCES Performer(PerformerId)
+CREATE TABLE solo_peformer(
+	solo_performer_id SERIAL PRIMARY KEY,
+	performer_iD INT UNIQUE REFERENCES performer(performer_id)
 );
 
-CREATE TABLE DJ(
-	DJId SERIAL PRIMARY KEY,
-	PerformerID INT UNIQUE REFERENCES Performer(PerformerId)
+CREATE TABLE dj(
+	dj_id SERIAL PRIMARY KEY,
+	performer_id INT UNIQUE REFERENCES performer(performer_id)
 );
 
-CREATE TABLE Band(
-	BandId SERIAL PRIMARY KEY,
-	BandName VARCHAR(40) NOT NULL
+CREATE TABLE band(
+	band_id SERIAL PRIMARY KEY,
+	band_name VARCHAR(40) NOT NULL
 );
 
-CREATE TABLE BandMember(
-	BandMemberId SERIAL PRIMARY KEY,
-	PerformerID INT UNIQUE REFERENCES Performer(PerformerId),
-	BandId INT NOT NULL REFERENCES Band(BandId)
+CREATE TABLE band_member(
+	band_member_id SERIAL PRIMARY KEY,
+	performer_iD INT UNIQUE REFERENCES performer(performer_id),
+	band_id INT NOT NULL REFERENCES band(band_id)
 );
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-CREATE TABLE FestivalPerformer(
-	PerformerId INT NOT NULL REFERENCES Performer(PerformerId),
-	FestivalId INT NOT NULL REFERENCES Festival(FestivalId),
-	FestivalDatePeriod DATERANGE,
-	PRIMARY KEY(PerformerId,FestivalId),
+CREATE TABLE festival_performer(
+	performer_id INT NOT NULL REFERENCES performer(performer_id),
+	festival_id INT NOT NULL REFERENCES festival(festival_id),
+	festival_date_period DATERANGE,
+	PRIMARY KEY(performer_id,Festival_id),
 
 	EXCLUDE USING gist(
-		PerformerId WITH =,
-		FestivalDatePeriod WITH &&
+		performer_id WITH =,
+		festival_date_period WITH &&
 	)
 );
+
+ALTER TABLE bAND
+ADD COLUMN number_of_members INT 
+
+
+CREATE TYPE festival_location AS ENUM ('Main','Forest','Beach');
+
+CREATE TABLE stage(
+	stage_id SERIAL PRIMARY KEY,
+	name VARCHAR(20),
+	capacity INT,
+	is_covered BOOL,
+	location festival_location,
+	festival_id INT NOT NULL REFERENCES festival(festival_id) ON DELETE CASCADE
+	
+	
+);
+CREATE TABLE performance(
+
+	performance_id SERIAL PRIMARY KEY,
+	performer_id INT NOT NULL,
+	festival_id INT NOT NULL,
+	start_time TIMESTAMP NOT NULL,
+	end_time TIMESTAMP NOT NULL,
+	stage_id INT NOT NULL REFERENCES stage(stage_idd),
+	
+	FOREIGN KEY(performer_id,festival_id) REFERENCES festival_performer(performer_id,festival_id)
+);
+
+ALTER TABLE Performance 
+
+
 
 
 

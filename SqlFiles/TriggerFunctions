@@ -1,6 +1,10 @@
-CREATE FUNCTION AutoPeriod() RETURNS TRIGGER AS &&
+CREATE FUNCTION auto_period() RETURNS TRIGGER AS $$
 BEGIN
-	SELECT
-	INTO NEW.FestivalPeriod
-	FROM FESTIVAL F
-	WHERE F.FestivalId=NEW.FestivalId
+	SELECT DATERANGE(f.start_time,f.end_time,'[]')
+	INTO NEW.festival_period
+	FROM festival f
+	WHERE f.festival_id=NEW.festival_id;
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+	
