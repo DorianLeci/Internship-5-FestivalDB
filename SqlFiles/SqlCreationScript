@@ -21,3 +21,52 @@ CREATE TABLE Visitor(
 	CityId INT NOT NULL REFERENCES City(CityId)
 );
 
+CREATE TYPE FestivalStatus AS ENUM('Planiran','Aktivan','Zavrsen');
+
+CREATE TABLE Festival(
+	FestivalId SERIAL PRIMARY KEY,
+	Name VARCHAR(30) NOT NULL,
+	Capacity INT NOT NULL,
+	StartDate DATE NOT NULL,
+	EndDate DATE NOT NULL,
+	HasVisitorCamp BOOL,
+	Status FestivalStatus NOT NULL,
+	CityId INT NOT NULL REFERENCES City(CityId)	
+);
+
+
+
+CREATE TYPE MusicGenre AS ENUM(
+ 'Rock','Pop','Jazz','House','HipHop','Classical','Blues','Country','Metal','Soul','Reggae','Funk','Techno','Disco');
+ 
+CREATE TABLE Performer(
+	PerformerId SERIAL PRIMARY KEY,
+	Name VARCHAR(30) NOT NULL,
+	Genre MusicGenre,
+	IsActive BOOL,
+	CountryId INT NOT NULL REFERENCES Country(CountryId)
+);
+
+CREATE TABLE SoloPeformer(
+	SoloPerformerId SERIAL PRIMARY KEY,
+	PerformerID INT UNIQUE REFERENCES Performer(PerformedId)
+);
+
+CREATE TABLE DJ(
+	DJId SERIAL PRIMARY KEY,
+	PerformerID INT UNIQUE REFERENCES Performer(PerformedId)
+);
+
+CREATE TABLE Band(
+	BandId SERIAL PRIMARY KEY,
+	BandName VARCHAR(40) NOT NULL
+);
+CREATE TABLE BandMember(
+	BandMemberId SERIAL PRIMARY KEY,
+	PerformerID INT UNIQUE REFERENCES Performer(PerformedId),
+	BandId INT REFERENCES Band(BandId)
+);
+
+
+
+
