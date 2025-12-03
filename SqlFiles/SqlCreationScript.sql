@@ -70,17 +70,23 @@ CREATE TABLE band_member(
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
+
+
 CREATE TABLE festival_performer(
+	festival_performer_id SERIAL PRIMARY KEY,
 	performer_id INT NOT NULL REFERENCES performer(performer_id),
 	festival_id INT NOT NULL REFERENCES festival(festival_id),
 	festival_date_period DATERANGE,
-	PRIMARY KEY(performer_id,Festival_id),
+	
+	UNIQUE(performer_id,Festival_id)
+);
 
+ALTER TABLE festival_performer
+ADD CONSTRAINT no_overlaping_festivals_for_performer
 	EXCLUDE USING gist(
 		performer_id WITH =,
 		festival_date_period WITH &&
-	)
-);
+	);
 
 ALTER TABLE band
 ADD COLUMN number_of_members INT;
@@ -98,16 +104,16 @@ CREATE TABLE stage(
 	
 );
 
+
 CREATE TABLE performance(
 
 	performance_id SERIAL PRIMARY KEY,
 	performer_id INT NOT NULL,
-	festival_id INT NOT NULL,
 	start_time TIMESTAMP NOT NULL,
 	end_time TIMESTAMP NOT NULL,
 	stage_id INT NOT NULL REFERENCES stage(stage_id),
 	
-	FOREIGN KEY(performer_id,festival_id) REFERENCES festival_performer(performer_id,festival_id)
+	festival_performer_id INT NOT NULL REFERENCES festival_performer(festival_performer_id)
 );
 
 ALTER TABLE performance ADD CONSTRAINT no_overlapping_performer
@@ -177,10 +183,36 @@ CREATE TABLE staff(
 
 ALTER TABLE staff
 ADD CONSTRAINT check_age_of_guard
-CHECK (role<> 'zastitar' OR EXTRACT(YEAR FROM AGE(birth_date::date)>=21));
+CHECK (role<> 'zastitar' OR EXTRACT(YEAR FROM AGE(birth_date))>=21);
+
+ALTER TABLE staff
+ALTER COLUMN has_safety_training SET DEFAULT FALSE;
 
 
+CREATE TABLE festival_staff(
+	festival_id INT NOT NULL REFERENCES festival(festival_id),
+	staff_id INT NOT NULL REFERENCES staff(staff_id),
+	festival_date_period DATERANGE,
+	
+	PRIMARY KEY(festival_id,staff_id)
+);
 
+ALTER TABLE festival_staff
+ADD CONSTRAINT no_overlaping_festivals_for_staff
+	EXCLUDE USING gist(
+		staff_id WITH =,
+		festival_date_period WITH &&
+	);
+
+
+CREATE TYPE membership_card_status AS ENUM('Aktivna','istekla');
+
+CREATE TABLE membership_card(
+	membership_card_id SERIAL PRIMARY KEY,
+	date_of_activation DATE,
+	status membership_card_status DEFAULT 'Aktivna',
+	visitor_id INT NOT NULL REFERENCES visitor(visitor_id) ON DELETE CASCADE	
+);
 
 
 

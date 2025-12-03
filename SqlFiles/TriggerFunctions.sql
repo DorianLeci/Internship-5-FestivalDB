@@ -106,6 +106,39 @@ FOR EACH ROW
 EXECUTE FUNCTION auto_total_price();
 
 
+CREATE OR REPLACE FUNCTION membership_card_eligibility() RETURNS TRIGGER AS $$
+DECLARE
+	distinct_festivals INT;
+	total_spent NUMERIC;
+BEGIN
+	SELECT COUNT(DISTINCT t.festival_id)
+	INTO distinct_festivals
+	FROM order_item oi
+	JOIN ticket t on t.ticket_id=oi.ticket_id
+	JOIN orders o ON o.order_id=oi.order_id
+	WHERE o.visitor_id=NEW.visitor_id;
+
+	SELECT SUM(oi.price*oi.quantity)
+	INTO total_spent 
+	FROM order_item oi
+	JOIN orders o ON o.order_id=oi.order_id
+	WHERE o.visitor_id=NEW.visitor_id;
+
+	IF distinct_festivals<=3 OR total_spent<600 THEN
+		RAISE EXCEPTION 'Posljetitelj ne može imati člansku iskaznicu (distinct_festivals: %),(total_spent: %)',
+		distinct_festivals,total_spent;
+
+	RETURN NEW;
+	
+	END IF;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trg_membership_card_eligibility
+BEFORE INSERT ON membership_card
+FOR EACH ROW
+EXECUTE FUNCTION membership_card_eligibility();
+
 
 	
 
