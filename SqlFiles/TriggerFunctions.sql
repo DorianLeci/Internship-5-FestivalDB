@@ -140,8 +140,32 @@ FOR EACH ROW
 EXECUTE FUNCTION membership_card_eligibility();
 
 
-	
 
+CREATE OR REPLACE FUNCTION check_capacity() RETURNS TRIGGER AS $$
+DECLARE
+	festival_capacity
+BEGIN
+	IF NEW.capacity>(SELECT f.capacity INTO festival_capacity 
+	FROM festival f 
+	WHERE f.festival_id=NEW.festival_id) THEN
+		RAISE EXCEPTION 'Kapacitet (%) ne može biti veći od kapaciteta festivala. (%)',NEW.capacity,festival.capacity;
+
+	END IF;
+
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE TRIGGER trg_check_capacity_stage
+BEFORE INSERT OR UPDATE ON stage
+FOR EACH ROW
+EXECUTE FUNCTION check_capacity()
+
+CREATE OR REPLACE TRIGGER trg_check_capacity_workshop
+BEFORE INSERT OR UPDATE ON workshop
+FOR EACH ROW
+EXECUTE FUNCTION check_capacity()
+		
 
 	
 	

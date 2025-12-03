@@ -207,14 +207,31 @@ ADD CONSTRAINT no_overlaping_festivals_for_staff
 
 CREATE TYPE membership_card_status AS ENUM('Aktivna','istekla');
 
+
 CREATE TABLE membership_card(
 	membership_card_id SERIAL PRIMARY KEY,
 	date_of_activation DATE,
-	status membership_card_status DEFAULT 'Aktivna',
+	status membership_card_status NOT NULL DEFAULT 'Aktivna',
 	visitor_id INT NOT NULL REFERENCES visitor(visitor_id) ON DELETE CASCADE	
 );
 
 
+CREATE TYPE type_of_workshop AS ENUM('elektronička_glazba','klasicna_glazba','svjetlo_i_ton','DJ-ing','song-writing','marketing','produkcija','snimanje_zvuka');
+CREATE TYPE workshop_difficulty AS ENUM('početna','srednja','napredna');
 
+CREATE TABLE workshop(
+	workshop_id SERIAL PRIMARY KEY,
+	name VARCHAR(40) NOT NULL,
+	int capacity INT NOT NULL,
+	type type_of_workshop 
+	difficulty workshop_difficulty
+	duration INTERVAL NOT NULL,
+	bool prior_knowledge_required,
+	
+	festival_id INT NOT NULL REFERENCES festival(festival_id),
+);
+
+ALTER TABLE workshop
+ADD CONSTRAINT workshop_festival_unique UNIQUE (festival_id)
 
 
