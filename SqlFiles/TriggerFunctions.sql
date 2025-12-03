@@ -143,7 +143,7 @@ EXECUTE FUNCTION membership_card_eligibility();
 
 CREATE OR REPLACE FUNCTION check_capacity() RETURNS TRIGGER AS $$
 DECLARE
-	festival_capacity
+	festival_capacity INT;
 BEGIN
 	IF NEW.capacity>(SELECT f.capacity INTO festival_capacity 
 	FROM festival f 
@@ -159,13 +159,35 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER trg_check_capacity_stage
 BEFORE INSERT OR UPDATE ON stage
 FOR EACH ROW
-EXECUTE FUNCTION check_capacity()
+EXECUTE FUNCTION check_capacity();
 
 CREATE OR REPLACE TRIGGER trg_check_capacity_workshop
 BEFORE INSERT OR UPDATE ON workshop
 FOR EACH ROW
-EXECUTE FUNCTION check_capacity()
+EXECUTE FUNCTION check_capacity();
 		
 
+CREATE OR REPLACE FUNCTION check_workshop_capacity() RETURNS TRIGGER AS $$
+DECLARE 
+	curr_enrollment_count INT;
+	workshop_capacity INT;
+BEGIN
+	SELECT COUNT(*)
+	INTO curr_enrollment_count
+	FROM visitor_workshop v
+	WHERE v.workshop_id=NEW.workshop_id AND v.status IN ('prijavljen','čeka na povtrdu')
+
+	IF(curr_enrollment_count>=(SELECT capacity INTO workshop_capacity FROM workshop)) THEN
+		RAISE EXCEPTION 'Radionica je popunjena do kraja (kapacitet: %)',workshop_capacity;
+	END IF;
+
+	RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_capacity
+BEFORE INSERT ON visitor_workshop
+FOR EACH ROW
+EXECUTE FUNCTION check_workshop_capacity();
 	
 	

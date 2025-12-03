@@ -70,8 +70,6 @@ CREATE TABLE band_member(
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-
-
 CREATE TABLE festival_performer(
 	festival_performer_id SERIAL PRIMARY KEY,
 	performer_id INT NOT NULL REFERENCES performer(performer_id),
@@ -222,16 +220,30 @@ CREATE TYPE workshop_difficulty AS ENUM('početna','srednja','napredna');
 CREATE TABLE workshop(
 	workshop_id SERIAL PRIMARY KEY,
 	name VARCHAR(40) NOT NULL,
-	int capacity INT NOT NULL,
-	type type_of_workshop 
-	difficulty workshop_difficulty
+	capacity INT NOT NULL,
+	type type_of_workshop,
+	difficulty workshop_difficulty,
 	duration INTERVAL NOT NULL,
-	bool prior_knowledge_required,
+	prior_knowledge_required BOOL,
 	
-	festival_id INT NOT NULL REFERENCES festival(festival_id),
+	festival_id INT NOT NULL REFERENCES festival(festival_id)
 );
 
 ALTER TABLE workshop
 ADD CONSTRAINT workshop_festival_unique UNIQUE (festival_id)
+
+
+CREATE TYPE enrollment_status AS ENUM('prijavljen','otkazao','čeka_na_potvrdu','prisustvovao');
+
+CREATE TABLE visitor_workshop(
+	workshop_id INT NOT NULL REFERENCES workshop(workshop_id),
+	visitor_id INT NOT NULL REFERENCES visitor(visitor_id),
+	
+	PRIMARY KEY(visitor_id,workshop_id),
+
+	enrollment_time TIMESTAMP NOT NULL,
+	status enrollment_status NOT NULL DEFAULT 'čeka_na_potvrdu'
+);
+
 
 
