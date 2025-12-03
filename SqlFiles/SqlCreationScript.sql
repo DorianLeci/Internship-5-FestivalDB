@@ -96,8 +96,8 @@ CREATE TABLE stage(
 	location festival_location,
 	festival_id INT NOT NULL REFERENCES festival(festival_id) ON DELETE CASCADE
 	
-	
 );
+
 CREATE TABLE performance(
 
 	performance_id SERIAL PRIMARY KEY,
@@ -123,8 +123,8 @@ ALTER TABLE performance ADD CONSTRAINT no_overlapping_on_stage
 	);
 
 
-CREATE TYPE type_of_ticket AS ENUM ('jednodnevna','festivalska','VIP','kamp')
-CREATE TYPE ticket_validity AS ENUM('jedan_dan','cijeli_festival')
+CREATE TYPE type_of_ticket AS ENUM ('jednodnevna','festivalska','VIP','kamp','promo');
+CREATE TYPE ticket_validity AS ENUM('jedan_dan','cijeli_festival');
 
 CREATE TABLE ticket_type(
 	ticket_type_id SERIAL PRIMARY KEY,
@@ -133,8 +133,19 @@ CREATE TABLE ticket_type(
 
 CREATE TABLE ticket(
 	ticket_id SERIAL PRIMARY KEY,
+	ticket_type_id INT NOT NULL REFERENCES ticket_type(ticket_type_id)
+);
+
+CREATE TABLE ticket_info(
+	ticket_info_id SERIAL PRIMARY KEY,
+	price NUMERIC,
+	description TEXT,
+	festival_id INT NOT NULL REFERENCES festival(festival_id) ON DELETE CASCADE,
+	ticket_id INT NOT NULL UNIQUE REFERENCES ticket(ticket_id) ON DELETE CASCADE
 	
 );
+
+
 
 
 
