@@ -133,15 +133,31 @@ CREATE TABLE ticket_type(
 
 CREATE TABLE ticket(
 	ticket_id SERIAL PRIMARY KEY,
-	ticket_type_id INT NOT NULL REFERENCES ticket_type(ticket_type_id)
+	ticket_type_id INT NOT NULL REFERENCES ticket_type(ticket_type_id),
+	festival_id INT NOT NULL REFERENCES festival(festival_id) ON DELETE CASCADE
 );
 
 CREATE TABLE ticket_info(
 	ticket_info_id SERIAL PRIMARY KEY,
-	price NUMERIC,
 	description TEXT,
-	festival_id INT NOT NULL REFERENCES festival(festival_id) ON DELETE CASCADE,
-	ticket_id INT NOT NULL UNIQUE REFERENCES ticket(ticket_id) ON DELETE CASCADE
+	ticket_id INT NOT NULL UNIQUE REFERENCES ticket(ticket_id) ON DELETE CASCADE	
+);
+
+CREATE TABLE orders(
+	order_id SERIAL PRIMARY KEY,
+	amount INT NOT NULL,
+	time_of_purchase TIMESTAMP NOT NULL,
+	total_price NUMERIC NOT NULL,
+	visitor_id INT NOT NULL REFERENCES visitor(visitor_id) ON DELETE SET NULL
+	
+);
+
+CREATE TABLE order_item(
+	order_item_id SERIAL PRIMARY KEY,
+	price NUMERIC NOT NULL,
+	quantity INT NOT NULL DEFAULT 1,
+	order_id INT NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
+	ticket_id INT NOT NULL REFERENCES ticket(ticket_id)
 	
 );
 
