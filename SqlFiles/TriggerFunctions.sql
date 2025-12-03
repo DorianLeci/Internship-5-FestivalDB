@@ -1,16 +1,26 @@
-CREATE FUNCTION auto_period() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION auto_period() RETURNS TRIGGER AS $$
 BEGIN
-	SELECT DATERANGE(f.start_time,f.end_time,'[]')
-	INTO NEW.festival_period
-	FROM festival f
-	WHERE f.festival_id=NEW.festival_id;
+	IF TG_OP='INSERT' OR NEW.festival_id IS DISTINCT FROM OLD.festival_id THEN
+		SELECT DATERANGE(f.start_time,f.end_time,'[]')
+		INTO NEW.festival_period
+		FROM festival f
+		WHERE f.festival_id=NEW.festival_id;
+		
+	END IF;
+	
 	RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 
+
 CREATE TRIGGER trg_auto_period
-BEFORE INSERT ON festival_performer
+BEFORE INSERT OR UPDATE ON festival_performer
+FOR EACH ROW
+EXECUTE FUNCTION auto_period();
+
+CREATE TRIGGER trg_auto_period_staff
+BEFORE INSERT OR UPDATE ON festival_staff
 FOR EACH ROW
 EXECUTE FUNCTION auto_period();
 
@@ -30,8 +40,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+
 CREATE TRIGGER trg_auto_ticket_validity
-BEFORE INSERT ON ticket_type
+BEFORE INSERT OR UPDATE ON ticket_type
 FOR EACH ROW
 EXECUTE FUNCTION auto_ticket_validity();
 
@@ -93,4 +105,10 @@ AFTER INSERT OR UPDATE ON order_item
 FOR EACH ROW
 EXECUTE FUNCTION auto_total_price();
 
+
+
+	
+
+
+	
 	

@@ -161,9 +161,23 @@ CREATE TABLE order_item(
 	
 );
 
+CREATE TYPE staff_role AS ENUM ('organizator','tehnicar','zastitar','volonter');
 
+CREATE TABLE staff(
+	staff_id SERIAL PRIMARY KEY,
+	name VARCHAR(30) NOT NULL,
+	surname VARCHAR(30) NOT NULL,
+	birth_date DATE,
+	role staff_role NOT NULL,
+	contact INT,
+	has_safety_training BOOL NOT NULL,
 
+	festival_id INT NOT NULL REFERENCES festival(festival_id)
+);
 
+ALTER TABLE staff
+ADD CONSTRAINT check_age_of_guard
+CHECK (role<> 'zastitar' OR EXTRACT(YEAR FROM AGE(birth_date::date)>=21));
 
 
 
