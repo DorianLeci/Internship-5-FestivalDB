@@ -26,7 +26,7 @@ def get_data(cur,count=1000):
     festival_insert(cur)
     band_insert(cur)
     performer_insert(cur)
-
+    festival_performer_insert(cur)
 
 
 
@@ -94,30 +94,36 @@ def performer_insert(cur,count=1000):
 
         with open("/home/dorian/Downloads/performer.json", "r") as f:
             performer_data = json.load(f)
-            
+
         with open("/home/dorian/Downloads/member_name.json", "r") as f:
             band_members = json.load(f)
 
         cur.execute("SELECT country_id FROM country")
         country_id=[row[0] for row in cur.fetchall()]
 
+        query_params="(performer_id,name,genre,is_active,country_id) VALUES (%s,%s,%s,%s,%s)"
+
         for p in performer_data:
             p["country_id"]=random.choice(country_id)
             performer_type=p["type"]
-
-            query_params="(performer_id,name,genre,is_active,country_id) VALUES (%s,%s,%s,%s,%s)"
                      
             if(performer_type=="Solo"):
                 insert_query=f"INSERT INTO public.solo_performer {query_params}"
+                cur.execute(insert_query,(p["performer_id"],random_performers.generate_random_names(random_performers.solo_performers),p["genre"],p["is_active"],p["country_id"]))
+
+                insert_query=f"INSERT INTO public.performer {query_params}"
                 cur.execute(insert_query,(p["performer_id"],random_performers.generate_random_names(random_performers.solo_performers),p["genre"],p["is_active"],p["country_id"]))
 
             elif(performer_type=="DJ"):
                 insert_query=f"INSERT INTO public.dj {query_params}"
                 cur.execute(insert_query,(p["performer_id"],random_performers.generate_random_names(random_performers.djs),p["genre"],p["is_active"],p["country_id"]))
 
+                insert_query=f"INSERT INTO public.performer {query_params}"
+                cur.execute(insert_query,(p["performer_id"],random_performers.generate_random_names(random_performers.djs),p["genre"],p["is_active"],p["country_id"]))
+
             elif(performer_type=="Band_Member"): 
-                query_params="(performer_id,name,genre,is_active,country_id,band_id) VALUES (%s,%s,%s,%s,%s,%s)"
-                insert_query=f"INSERT INTO public.band_member {query_params}"
+                query_params_band_member="(performer_id,name,genre,is_active,country_id,band_id) VALUES (%s,%s,%s,%s,%s,%s)"
+                insert_query=f"INSERT INTO public.band_member {query_params_band_member}"
 
  
                 member_name=random.choice(band_members)["name"]
@@ -127,6 +133,11 @@ def performer_insert(cur,count=1000):
 
                 cur.execute(insert_query,(p["performer_id"],member_name,
                                           p["genre"],p["is_active"],p["country_id"],random.choice(band_id_list)))
+                
+                insert_query=f"INSERT INTO public.performer {query_params}"
+                cur.execute(insert_query,(p["performer_id"],member_name,p["genre"],p["is_active"],p["country_id"]))
+
+                
 
 def band_insert(cur,count=1000):
     with open("/home/dorian/Downloads/band.json", "r") as f:
@@ -136,6 +147,25 @@ def band_insert(cur,count=1000):
     if(cur.fetchone()[0]==0):
         for band in band_data:
             cur.execute("INSERT INTO public.band (band_id,band_name) VALUES (%s,%s)",(band["band_id"],random_performers.generate_random_names(random_performers.bands)))
+
+
+def festival_performer_insert(cur,count=1000):
+    batch_insert=[]
+
+    cur.execute("SELECT festival_id,start_date,end_date FROM festival")
+    festival_list=cur.fetchall()
+
+    cur.execute("SELECT performer_id FROM performer")
+    performer_id_list = [row[0] for row in cur.fetchall()]
+
+    for (fes_id,fes_start,fes_end) in festival_list:
+
+        fest_performers=random.sample(performer_id_list,k=100)
+        for perf_id in fest_performers:
+            batch_insert.append((fes_id,perf_id))
+
+    cur.executemany("INSERT INTO public.festival_performer (festival_id,performer_id) VALUES (%s,%s) ON CONFLICT (festival_id,performer_id) DO NOTHING",batch_insert)
+
 
 
 

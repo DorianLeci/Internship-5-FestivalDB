@@ -106,16 +106,17 @@ CREATE TABLE festival_performer(
 	festival_performer_id SERIAL PRIMARY KEY,
 	performer_id INT NOT NULL REFERENCES performer(performer_id),
 	festival_id INT NOT NULL REFERENCES festival(festival_id),
-	festival_date_period DATERANGE,
+	festival_period DATERANGE,
 	
-	UNIQUE(performer_id,Festival_id)
+	UNIQUE(performer_id,festival_id)
 );
+
 
 ALTER TABLE festival_performer
 ADD CONSTRAINT no_overlaping_festivals_for_performer
 	EXCLUDE USING gist(
 		performer_id WITH =,
-		festival_date_period WITH &&
+		festival_period WITH &&
 	);
 
 ALTER TABLE band
