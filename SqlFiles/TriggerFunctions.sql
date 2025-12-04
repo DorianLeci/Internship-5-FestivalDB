@@ -189,5 +189,13 @@ CREATE TRIGGER trg_check_capacity
 BEFORE INSERT ON visitor_workshop
 FOR EACH ROW
 EXECUTE FUNCTION check_workshop_capacity();
+
+
+CREATE OR REPLACE FUNCTION set_festival_status() RETURNS TRIGGER AS $$
+BEGIN
+	IF NEW.start_date>CURRENT_DATE THEN
+		NEW.status='Planiran';
+
+	ELSEIF NEW.start_date<=CURRENT_DATE AND NEW.end_date>=CURRENT_DATE
 	
 	

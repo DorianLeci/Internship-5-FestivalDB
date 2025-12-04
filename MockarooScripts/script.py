@@ -5,7 +5,10 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+BASE_DIR=os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR,".env"))
+
+
 API_KEY=os.getenv("MOCKAROO_API_KEY")
 print(API_KEY)
 
@@ -18,6 +21,7 @@ def GetData(cur,count=1000):
     CountryInsert(cur)
     CityInsert(cur)
     VisitorInsert(cur)
+    FestivalInsert(cur)
 
 
 
@@ -59,9 +63,23 @@ def VisitorInsert(cur,count=1000):
 
         for visitor in visitorData:
             visitor["city_id"]=random.choice(city_id)
-            cur.execute(f"INSERT INTO public.visitor (visitor_id,name,surname,email,birth_date,city_id) VALUES (%s,%s,%s,%s,%s,%s)",(visitor["visitor_id"],visitor["name"],
+            cur.execute("INSERT INTO public.visitor (visitor_id,name,surname,email,birth_date,city_id) VALUES (%s,%s,%s,%s,%s,%s)",(visitor["visitor_id"],visitor["name"],
             visitor["surname"],visitor["email"],visitor["birth_date"],visitor["city_id"]))
 
+
+def FestivalInsert(cur,count=1000):
+    cur.execute("SELECT COUNT(*) FROM festival")
+    if(cur.fetchone()[0]==0):
+        festival_schema_id="a8936230"
+        festivalData=Fetch(festival_schema_id)
+
+        cur.execute("SELECT city_id FROM city")
+        city_id=[row[0] for row in cur.fetchall()]
+
+        for f in festivalData:
+            f["city_id"]=random.choice(city_id)
+            cur.execute("INSERT INTO public.festival (festival_id,name,capacity,start_date,end_date,has_visitor_camp,city_id) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                        (f["festival_id"],f["name"],f["capacity"],f["start_date"],f["end_date"],f["has_visitor_camp"],f["city_id"]))
 
 conn=psycopg2.connect(host="localhost",dbname="Internship-5-FestivalDB",user="postgres",password="postgres")
 cur=conn.cursor()
