@@ -35,9 +35,42 @@ CREATE TABLE festival(
 );
 
 
-
 CREATE TYPE music_genre AS ENUM(
- 'Rock','Pop','Jazz','House','HipHop','Classical','Blues','Country','Metal','Soul','Reggae','Funk','Techno','Disco');
+    'Rock',
+    'Pop',
+    'Jazz',
+    'House',
+    'HipHop',
+    'Classical',
+    'Blues',
+    'Country',
+    'Metal',
+    'Soul',
+    'Reggae',
+    'Funk',
+    'Techno',
+    'Disco',
+    'R&B',
+    'Alternative',
+    'Indie',
+    'Punk',
+    'Electronic',
+    'Trance',
+    'Dubstep',
+    'Folk',
+    'Gospel',
+    'Ska',
+    'Grunge',
+    'Ambient',
+    'Opera',
+    'Latin',
+    'K-Pop',
+    'J-Pop',
+    'EDM',
+    'Hardstyle',
+    'Drum & Bass',
+    'Chillout',
+    'Lounge');
  
 CREATE TABLE performer(
 	performer_id SERIAL PRIMARY KEY,
@@ -47,26 +80,25 @@ CREATE TABLE performer(
 	country_id INT NOT NULL REFERENCES country(country_id)
 );
 
-CREATE TABLE solo_peformer(
-	solo_performer_id SERIAL PRIMARY KEY,
-	performer_iD INT UNIQUE REFERENCES performer(performer_id)
-);
+
+CREATE TABLE solo_performer(
+	
+)INHERITS(performer);
 
 CREATE TABLE dj(
-	dj_id SERIAL PRIMARY KEY,
-	performer_id INT UNIQUE REFERENCES performer(performer_id)
-);
+
+)INHERITS(performer);
 
 CREATE TABLE band(
 	band_id SERIAL PRIMARY KEY,
-	band_name VARCHAR(40) NOT NULL
+	band_name VARCHAR(40) NOT NULL,
+	num_of_members INT 
 );
 
 CREATE TABLE band_member(
-	band_member_id SERIAL PRIMARY KEY,
-	performer_iD INT UNIQUE REFERENCES performer(performer_id),
 	band_id INT NOT NULL REFERENCES band(band_id)
-);
+	
+)INHERITS(performer);
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 

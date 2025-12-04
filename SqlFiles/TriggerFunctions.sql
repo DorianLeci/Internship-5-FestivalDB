@@ -196,6 +196,43 @@ BEGIN
 	IF NEW.start_date>CURRENT_DATE THEN
 		NEW.status='Planiran';
 
-	ELSEIF NEW.start_date<=CURRENT_DATE AND NEW.end_date>=CURRENT_DATE
+	ELSEIF NEW.start_date<=CURRENT_DATE AND NEW.end_date>=CURRENT_DATE THEN
+		NEW.status='Aktivan';
+	ELSE
+		NEW.status='Zavrsen';
+
+	END IF;
+	RETURN NEW;
+
+END
+$$ LANGUAGE plpgsql;
 	
+CREATE OR REPLACE TRIGGER trg_festival_status
+BEFORE INSERT OR UPDATE ON festival
+FOR EACH ROW
+EXECUTE FUNCTION set_festival_status()
+
+
+CREATE OR REPLACE FUNCTION calculate_band_members() RETURNS TRIGGER AS $$
+DECLARE
+	member_count INT;
+BEGIN
+	SELECT COUNT(*)
+	INTO member_count
+	FROM band b
+	WHERE b.band_id=NEW.band_id;
+
+	UPDATE band b
+	SET num_of_members=member_count
+	WHERE b.band_id=NEW.band_id;
 	
+	RETURN NEW;
+
+END
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE TRIGGER trg_calculate_band_members
+AFTER INSERT OR DELETE ON band_member
+FOR EACH ROW
+EXECUTE FUNCTION calculate_band_members()
