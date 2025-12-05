@@ -141,24 +141,16 @@ ADD CONSTRAINT capacity_greater_than_zero CHECK(capacity>0)
 CREATE TABLE performance(
 
 	performance_id SERIAL PRIMARY KEY,
-	performer_id INT NOT NULL,
-	start_time TIMESTAMP NOT NULL,
-	end_time TIMESTAMP NOT NULL,
+	performance_period TSRANGE NOT NULL,
 	stage_id INT NOT NULL REFERENCES stage(stage_id),
 	
 	festival_performer_id INT NOT NULL REFERENCES festival_performer(festival_performer_id)
 );
 
-ALTER TABLE performance ADD CONSTRAINT no_overlapping_performer
-	EXCLUDE USING gist(
-		performer_id WITH=,
-		tsrange(start_time,end_time,'[]') WITH &&
-	);
-
 ALTER TABLE performance ADD CONSTRAINT no_overlapping_on_stage
 	EXCLUDE USING gist(
 		stage_id WITH=,
-		tsrange(start_time,end_time,'[]') WITH &&
+		performance_period WITH &&
 	);
 
 

@@ -1,11 +1,12 @@
 import requests
 import psycopg2
 import random
-from datetime import datetime
+from datetime import datetime, timedelta,time
 from dotenv import load_dotenv
 import os
 import random_performers
 import json
+from faker import Faker
 
 BASE_DIR=os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(BASE_DIR,".env"))
@@ -28,6 +29,7 @@ def get_data(cur,count=1000):
     performer_insert(cur)
     festival_performer_insert(cur)
     stage_insert(cur)
+    performance_insert(cur)
 
 
 
@@ -208,6 +210,70 @@ def stage_insert(cur,count=1000):
                                 (stage["stage_id"],stage["name"],stage["capacity"],stage["is_covered"],stage["location"],fest_id))
                     break
             
+
+
+def performance_insert(cur,count=1000):
+    cur.execute("SELECT COUNT(*) FROM performance")
+
+    if(cur.fetchone()[0]==0):
+
+        batch_insert=[]
+
+        cur.execute("SELECT *FROM festival_performer")
+        festival_performer_list=cur.fetchall()
+
+        cur.execute("SELECT stage_id FROM stage")
+        stage_id_list=cur.fetchall()
+
+        cur.execute("SELECT performer_id FROM performer")
+        performer_id_list = [row[0] for row in cur.fetchall()]
+
+        performer_schedule={performer_id:[] for performer_id in performer_id_list}
+        stage_schedule={stage_id:[] for stage_id in stage_id_list}
+    
+        random.shuffle(festival_performer_list)
+
+        for fp_id,performer_id,festival_id,fest_period in festival_performer_list:
+                
+            period_date_time_lower=datetime.combine(fest_period.lower, time.min)
+            period_date_time_upper=datetime.combine(fest_period.upper, time.max)
+            start_time,end_time=make_random_period(period_date_time_lower,period_date_time_upper)
+
+            overlap=any(is_there_overlap(period_date_time_lower,period_date_time_upper,s,e) for s,e in performer_schedule[performer_id])
+                
+            if overlap:
+                continue
+
+            random.shuffle(stage_id_list)
+                
+            for stage_id in stage_id_list:
+                overlap=any(is_there_overlap(start_time,end_time,s,e)for s,e in stage_schedule[stage_id])
+
+                if overlap:
+                    continue
+                    
+                    
+                batch_insert.append((f"[{start_time.replace(microsecond=0)},{end_time.replace(microsecond=0)}]",stage_id,fp_id))
+                stage_schedule[stage_id].append((start_time.replace, end_time))
+                performer_schedule[performer_id].append((start_time, end_time))
+                break
+        
+        cur.executemany("INSERT INTO public.performance (performance_period,stage_id,festival_performer_id) VALUES (%s,%s,%s)",batch_insert)
+
+def make_random_period(start,end,min_duration=60,max_duration=240):
+    fake=Faker()
+
+    start_time=fake.date_time_between_dates(datetime_start=start,datetime_end=end-timedelta(minutes=max_duration))
+
+    duration_minutes=fake.random_int(min=min_duration,max=max_duration)
+    end_time=start_time+timedelta(minutes=duration_minutes)
+    
+    return start_time,end_time
+
+
+
+ 
+
 def check_stage_capacity(stage_capacity,festival_capacity):
     return stage_capacity<=festival_capacity
 

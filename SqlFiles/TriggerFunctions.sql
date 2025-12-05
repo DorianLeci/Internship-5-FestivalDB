@@ -248,3 +248,56 @@ CREATE OR REPLACE TRIGGER trg_calculate_band_members
 AFTER INSERT OR DELETE ON performer
 FOR EACH ROW
 EXECUTE FUNCTION calculate_band_members()
+
+
+CREATE OR REPLACE FUNCTION performance_period_check() RETURNS TRIGGER AS $$
+DECLARE
+  	festival_period_local TSRANGE;
+BEGIN
+	SELECT tsrange(lower(fp.festival_period)::timestamp,upper(fp.festival_period)::timestamp+ interval '1 day','[]')
+	INTO festival_period_local
+	FROM festival_performer fp
+	WHERE fp.festival_performer_id=NEW.festival_performer_id;
+
+	IF NOT NEW.performance_period <@ festival_period_local THEN
+		RAISE EXCEPTION 'Nastup mora biti unutar trajanja festivala (%)',festival_period_local;
+	END IF;
+	
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trg_performance_period_check
+BEFORE INSERT OR UPDATE ON performance
+FOR EACH ROW
+EXECUTE FUNCTION performance_period_check();
+
+
+CREATE OR REPLACE FUNCTION performance_overlap_performer() RETURNS TRIGGER AS $$
+DECLARE
+	target_performer_id INT;
+	count INT;
+BEGIN
+	SELECT performer_id
+	INTO target_performer_id
+	FROM festival_performer fp
+	WHERE fp.festival_performer_id=NEW.festival_performer_id;
+	
+	SELECT COUNT(*)
+	FROM performance p 
+	JOIN festival_performer fp on fp.festival_performer_id=p.festival_performer_id
+	WHERE fp.performer_id=target_performer_id
+	 AND p.performance_period && NEW.performance_period;
+
+	IF count>0 THEN
+		RAISE EXCEPTION 'Izvođač već ima nastup nastup za uneseno vrijeme %',NEW.performance_period;
+	END IF;
+
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trg_performance_overlap_performer
+BEFORE INSERT OR UPDATE ON performer
+FOR EACH ROW
+EXECUTE FUNCTION performance_overlap_performer();
