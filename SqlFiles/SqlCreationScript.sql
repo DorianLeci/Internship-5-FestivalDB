@@ -206,11 +206,17 @@ CREATE TABLE staff(
 );
 
 ALTER TABLE staff
+ALTER COLUMN contact TYPE VARCHAR(20);
+
+ALTER TABLE staff
 ADD CONSTRAINT check_age_of_guard
 CHECK (role<> 'zastitar' OR EXTRACT(YEAR FROM AGE(birth_date))>=21);
 
 ALTER TABLE staff
 ALTER COLUMN has_safety_training SET DEFAULT FALSE;
+
+ALTER TABLE staff
+DROP COLUMN festival_id;
 
 
 CREATE TABLE festival_staff(
