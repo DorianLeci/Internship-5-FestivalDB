@@ -27,6 +27,7 @@ def get_data(cur,count=1000):
     band_insert(cur)
     performer_insert(cur)
     festival_performer_insert(cur)
+    stage_insert(cur)
 
 
 
@@ -80,8 +81,10 @@ def festival_insert(cur,count=1000):
     if(cur.fetchone()[0]==0):
         festival_schema_id="a8936230"
         festival_data=Fetch(festival_schema_id)
+
         with open("/home/dorian/Downloads/festival.json", "r") as f:
             festival_data = json.load(f)
+
         cur.execute("SELECT city_id FROM city")
         city_id=[row[0] for row in cur.fetchall()]
 
@@ -168,7 +171,7 @@ def festival_performer_insert(cur,count=1000):
         for perf_id in performer_id_list:
 
             conflict=False
-            
+
             if(performer_schedule[perf_id]):
                 for (start_date,end_date) in performer_schedule[perf_id]:
 
@@ -183,6 +186,30 @@ def festival_performer_insert(cur,count=1000):
 
 
     cur.executemany("INSERT INTO public.festival_performer (festival_id,performer_id) VALUES (%s,%s) ON CONFLICT (festival_id,performer_id) DO NOTHING",batch_insert)
+
+def stage_insert(cur,count=1000):
+    cur.execute("SELECT COUNT(*) FROM stage")
+
+    if(cur.fetchone()[0]==0):
+        stage_schema_id="8043ad60"
+        stage_data=Fetch(stage_schema_id)
+        with open("/home/dorian/Downloads/stage.json", "r") as f:
+            stage_data = json.load(f)
+
+        cur.execute("SELECT festival_id,capacity FROM festival")
+        festival_info_list=cur.fetchall()
+
+        for stage in stage_data:
+            random.shuffle(festival_info_list)
+
+            for fest_id,fest_capacity in festival_info_list:
+                if check_stage_capacity(stage["capacity"],fest_capacity):
+                    cur.execute("INSERT INTO stage (stage_id,name,capacity,is_covered,location,festival_id) VALUES (%s,%s,%s,%s,%s,%s)",
+                                (stage["stage_id"],stage["name"],stage["capacity"],stage["is_covered"],stage["location"],fest_id))
+                    break
+            
+def check_stage_capacity(stage_capacity,festival_capacity):
+    return stage_capacity<=festival_capacity
 
 def is_there_overlap(start1,end1,start2,end2):
     return start1 <= end2 and start2 <= end1

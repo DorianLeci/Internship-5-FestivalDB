@@ -112,7 +112,18 @@ ADD CONSTRAINT no_overlaping_festivals_for_performer
 		festival_period WITH &&
 	);
 
-CREATE TYPE festival_location AS ENUM ('Main','Forest','Beach');
+CREATE TYPE festival_location AS ENUM (
+	'Main',
+    'Forest',
+    'Beach',
+    'Park',
+    'Stadium',
+    'Warehouse',
+    'Rooftop',
+    'Garden',
+    'Riverbank',
+    'Desert');
+
 
 CREATE TABLE stage(
 	stage_id SERIAL PRIMARY KEY,
@@ -124,6 +135,8 @@ CREATE TABLE stage(
 	
 );
 
+ALTER TABLE stage
+ADD CONSTRAINT capacity_greater_than_zero CHECK(capacity>0)
 
 CREATE TABLE performance(
 

@@ -145,12 +145,17 @@ CREATE OR REPLACE FUNCTION check_capacity() RETURNS TRIGGER AS $$
 DECLARE
 	festival_capacity INT;
 BEGIN
-	IF NEW.capacity>(SELECT f.capacity INTO festival_capacity 
-	FROM festival f 
-	WHERE f.festival_id=NEW.festival_id) THEN
+	SELECT f.capacity
+	INTO festival_capacity
+	FROM festival f
+	WHERE f.festival_id=NEW.festival_id;
+	
+	IF NEW.capacity>(festival_capacity) THEN
 		RAISE EXCEPTION 'Kapacitet (%) ne može biti veći od kapaciteta festivala. (%)',NEW.capacity,festival.capacity;
 
 	END IF;
+
+	RETURN NEW;
 
 END
 $$ LANGUAGE plpgsql;
@@ -227,7 +232,7 @@ BEGIN
 	SELECT COUNT(*)
 	INTO member_count
 	FROM performer p
-	WHERE NEW.type='Band_Member' AND p.band_id=target_band_id;
+	WHERE p.type='Band_Member' AND p.band_id=target_band_id;
 
 	UPDATE band b
 	SET num_of_members=member_count
