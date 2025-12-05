@@ -41,6 +41,7 @@ CREATE TABLE band(
 	num_of_members INT 
 );
 
+
 CREATE TYPE music_genre AS ENUM(
     'Rock',
     'Pop',
@@ -96,8 +97,8 @@ CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 CREATE TABLE festival_performer(
 	festival_performer_id SERIAL PRIMARY KEY,
-	performer_id INT NOT NULL REFERENCES performer(performer_id),
-	festival_id INT NOT NULL REFERENCES festival(festival_id),
+	performer_id INT NOT NULL REFERENCES performer(performer_id) ON DELETE CASCADE,
+	festival_id INT NOT NULL REFERENCES festival(festival_id) ON DELETE CASCADE,
 	festival_period DATERANGE,
 	
 	UNIQUE(performer_id,festival_id)
@@ -110,10 +111,6 @@ ADD CONSTRAINT no_overlaping_festivals_for_performer
 		performer_id WITH =,
 		festival_period WITH &&
 	);
-
-ALTER TABLE band
-ADD COLUMN number_of_members INT;
-
 
 CREATE TYPE festival_location AS ENUM ('Main','Forest','Beach');
 

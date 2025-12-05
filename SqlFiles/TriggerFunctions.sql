@@ -216,15 +216,22 @@ EXECUTE FUNCTION set_festival_status();
 CREATE OR REPLACE FUNCTION calculate_band_members() RETURNS TRIGGER AS $$
 DECLARE
 	member_count INT;
+	target_band_id INT;
 BEGIN
+	IF TG_OP='DELETE' THEN
+		target_band_id=OLD.band_id;
+	ELSE
+		target_band_id=NEW.band_id;
+	END IF;
+	
 	SELECT COUNT(*)
 	INTO member_count
-	FROM band b
-	WHERE NEW.type='Band_Member' AND b.band_id=NEW.band_id;
+	FROM performer p
+	WHERE NEW.type='Band_Member' AND p.band_id=target_band_id;
 
 	UPDATE band b
 	SET num_of_members=member_count
-	WHERE b.band_id=NEW.band_id;
+	WHERE b.band_id=target_band_id;
 	
 	RETURN NEW;
 
