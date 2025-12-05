@@ -12,14 +12,15 @@ CREATE TABLE city(
 		
 );
 
-CREATE TABLE Visitor(
+CREATE TABLE visitor(
 	visitor_id SERIAL PRIMARY KEY,
 	name VARCHAR(30) NOT NULL,
 	surname VARCHAR(30) NOT NULL,
 	email VARCHAR(50),
-	birthDate DATE,
+	birth_date DATE,
 	city_id INT NOT NULL REFERENCES city(city_id)
 );
+
 
 CREATE TYPE festival_status AS ENUM('Planiran','Aktivan','Zavrsen');
 
@@ -34,6 +35,11 @@ CREATE TABLE festival(
 	city_id INT NOT NULL REFERENCES city(city_id)	
 );
 
+CREATE TABLE band(
+	band_id SERIAL PRIMARY KEY,
+	band_name VARCHAR(40) NOT NULL,
+	num_of_members INT 
+);
 
 CREATE TYPE music_genre AS ENUM(
     'Rock',
@@ -71,34 +77,20 @@ CREATE TYPE music_genre AS ENUM(
     'Drum & Bass',
     'Chillout',
     'Lounge');
- 
+
+CREATE TYPE performer_type AS ENUM('Solo','DJ','Band_Member');
+
 CREATE TABLE performer(
 	performer_id SERIAL PRIMARY KEY,
 	name VARCHAR(30) NOT NULL,
 	genre music_genre,
 	is_active BOOL,
-	country_id INT NOT NULL REFERENCES country(country_id)
+	type performer_type NOT NULL,
+	country_id INT NOT NULL REFERENCES country(country_id),
+	band_id INT REFERENCES band(band_id)
 );
 
 
-CREATE TABLE solo_performer(
-	
-)INHERITS(performer);
-
-CREATE TABLE dj(
-
-)INHERITS(performer);
-
-CREATE TABLE band(
-	band_id SERIAL PRIMARY KEY,
-	band_name VARCHAR(40) NOT NULL,
-	num_of_members INT 
-);
-
-CREATE TABLE band_member(
-	band_id INT NOT NULL REFERENCES band(band_id)
-	
-)INHERITS(performer);
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
@@ -223,7 +215,7 @@ ALTER COLUMN has_safety_training SET DEFAULT FALSE;
 CREATE TABLE festival_staff(
 	festival_id INT NOT NULL REFERENCES festival(festival_id),
 	staff_id INT NOT NULL REFERENCES staff(staff_id),
-	festival_date_period DATERANGE,
+	festival_date DATERANGE,
 	
 	PRIMARY KEY(festival_id,staff_id)
 );
@@ -232,7 +224,7 @@ ALTER TABLE festival_staff
 ADD CONSTRAINT no_overlaping_festivals_for_staff
 	EXCLUDE USING gist(
 		staff_id WITH =,
-		festival_date_period WITH &&
+		festival_date WITH &&
 	);
 
 
@@ -263,7 +255,7 @@ CREATE TABLE workshop(
 );
 
 ALTER TABLE workshop
-ADD CONSTRAINT workshop_festival_unique UNIQUE (festival_id)
+ADD CONSTRAINT workshop_festival_unique UNIQUE (festival_id);
 
 
 CREATE TYPE enrollment_status AS ENUM('prijavljen','otkazao','čeka_na_potvrdu','prisustvovao');

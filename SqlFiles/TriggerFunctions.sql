@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION auto_period() RETURNS TRIGGER AS $$
 BEGIN
 	IF TG_OP='INSERT' OR NEW.festival_id IS DISTINCT FROM OLD.festival_id THEN
-		SELECT DATERANGE(f.start_time,f.end_time,'[]')
+		SELECT DATERANGE(f.start_date,f.end_date,'[]')
 		INTO NEW.festival_period
 		FROM festival f
 		WHERE f.festival_id=NEW.festival_id;
@@ -175,7 +175,7 @@ BEGIN
 	SELECT COUNT(*)
 	INTO curr_enrollment_count
 	FROM visitor_workshop v
-	WHERE v.workshop_id=NEW.workshop_id AND v.status IN ('prijavljen','čeka na povtrdu')
+	WHERE v.workshop_id=NEW.workshop_id AND v.status IN ('prijavljen','čeka na povtrdu');
 
 	IF(curr_enrollment_count>=(SELECT capacity INTO workshop_capacity FROM workshop)) THEN
 		RAISE EXCEPTION 'Radionica je popunjena do kraja (kapacitet: %)',workshop_capacity;
@@ -210,7 +210,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER trg_festival_status
 BEFORE INSERT OR UPDATE ON festival
 FOR EACH ROW
-EXECUTE FUNCTION set_festival_status()
+EXECUTE FUNCTION set_festival_status();
 
 
 CREATE OR REPLACE FUNCTION calculate_band_members() RETURNS TRIGGER AS $$
@@ -220,7 +220,7 @@ BEGIN
 	SELECT COUNT(*)
 	INTO member_count
 	FROM band b
-	WHERE b.band_id=NEW.band_id;
+	WHERE NEW.type='Band_Member' AND b.band_id=NEW.band_id;
 
 	UPDATE band b
 	SET num_of_members=member_count
@@ -233,6 +233,6 @@ $$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE TRIGGER trg_calculate_band_members
-AFTER INSERT OR DELETE ON band_member
+AFTER INSERT OR DELETE ON performer
 FOR EACH ROW
 EXECUTE FUNCTION calculate_band_members()
