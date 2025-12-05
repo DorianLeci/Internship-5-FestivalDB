@@ -14,12 +14,12 @@ $$ LANGUAGE plpgsql;
 
 
 
-CREATE TRIGGER trg_auto_period
+CREATE OR REPLACE TRIGGER trg_auto_period
 BEFORE INSERT OR UPDATE ON festival_performer
 FOR EACH ROW
 EXECUTE FUNCTION auto_period();
 
-CREATE TRIGGER trg_auto_period_staff
+CREATE OR REPLACE TRIGGER trg_auto_period_staff
 BEFORE INSERT OR UPDATE ON festival_staff
 FOR EACH ROW
 EXECUTE FUNCTION auto_period();
@@ -28,10 +28,10 @@ EXECUTE FUNCTION auto_period();
 CREATE OR REPLACE FUNCTION  auto_ticket_validity() RETURNS TRIGGER AS $$
 BEGIN
 
-	IF NEW.type_of_ticket IN ('jednodnevna','promo') THEN
+	IF NEW.ticket_type IN ('jednodnevna','promo') THEN
 		NEW.validity:='jedan_dan';
 		
-	ELSEIF NEW.type_of_ticket IN ('VIP','festivalska') THEN
+	ELSEIF NEW.ticket_type IN ('VIP','festivalska','kamp') THEN
 		NEW.validity:='cijeli_festival';
 		
 	END IF;
@@ -42,7 +42,7 @@ $$ LANGUAGE plpgsql;
 
 
 
-CREATE TRIGGER trg_auto_ticket_validity
+CREATE OR REPLACE TRIGGER trg_auto_ticket_validity
 BEFORE INSERT OR UPDATE ON ticket_type
 FOR EACH ROW
 EXECUTE FUNCTION auto_ticket_validity();
@@ -190,7 +190,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_check_capacity
+CREATE OR REPLACE TRIGGER trg_check_capacity
 BEFORE INSERT ON visitor_workshop
 FOR EACH ROW
 EXECUTE FUNCTION check_workshop_capacity();
@@ -247,7 +247,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER trg_calculate_band_members
 AFTER INSERT OR DELETE ON performer
 FOR EACH ROW
-EXECUTE FUNCTION calculate_band_members()
+EXECUTE FUNCTION calculate_band_members();
 
 
 CREATE OR REPLACE FUNCTION performance_period_check() RETURNS TRIGGER AS $$
@@ -284,6 +284,7 @@ BEGIN
 	WHERE fp.festival_performer_id=NEW.festival_performer_id;
 	
 	SELECT COUNT(*)
+	INTO count
 	FROM performance p 
 	JOIN festival_performer fp on fp.festival_performer_id=p.festival_performer_id
 	WHERE fp.performer_id=target_performer_id
@@ -298,6 +299,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE TRIGGER trg_performance_overlap_performer
-BEFORE INSERT OR UPDATE ON performer
+BEFORE INSERT OR UPDATE ON performance
 FOR EACH ROW
 EXECUTE FUNCTION performance_overlap_performer();

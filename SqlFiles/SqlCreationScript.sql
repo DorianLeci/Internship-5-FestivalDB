@@ -136,7 +136,7 @@ CREATE TABLE stage(
 );
 
 ALTER TABLE stage
-ADD CONSTRAINT capacity_greater_than_zero CHECK(capacity>0)
+ADD CONSTRAINT capacity_greater_than_zero CHECK(capacity>0);
 
 CREATE TABLE performance(
 
@@ -159,19 +159,17 @@ CREATE TYPE ticket_validity AS ENUM('jedan_dan','cijeli_festival');
 
 CREATE TABLE ticket_type(
 	ticket_type_id SERIAL PRIMARY KEY,
-	validity ticket_validity NOT NULL
+	validity ticket_validity NOT NULL,
+	description TEXT
 );
+
+ALTER TABLE ticket_type
+ADD COLUMN ticket_type type_of_ticket NOT NULL;
 
 CREATE TABLE ticket(
 	ticket_id SERIAL PRIMARY KEY,
 	ticket_type_id INT NOT NULL REFERENCES ticket_type(ticket_type_id),
 	festival_id INT NOT NULL REFERENCES festival(festival_id) ON DELETE CASCADE
-);
-
-CREATE TABLE ticket_info(
-	ticket_info_id SERIAL PRIMARY KEY,
-	description TEXT,
-	ticket_id INT NOT NULL UNIQUE REFERENCES ticket(ticket_id) ON DELETE CASCADE	
 );
 
 CREATE TABLE orders(
