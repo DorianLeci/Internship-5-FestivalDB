@@ -261,9 +261,6 @@ CREATE TABLE workshop(
 	festival_id INT NOT NULL REFERENCES festival(festival_id)
 );
 
-ALTER TABLE workshop
-ADD CONSTRAINT workshop_festival_unique UNIQUE (festival_id);
-
 
 CREATE TYPE enrollment_status AS ENUM('prijavljen','otkazao','čeka_na_potvrdu','prisustvovao');
 
