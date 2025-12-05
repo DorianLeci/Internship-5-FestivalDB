@@ -55,11 +55,12 @@ DECLARE
 	festival_range tsrange;
 
 BEGIN
-	SELECT INTO purchase_time
+	SELECT o.time_of_purchase
+	INTO purchase_time
 	FROM orders o
 	WHERE o.order_id=NEW.order_id;
 	
-	SELECT tsrange(f.start_date::timestamp,f.end_date::timestamp,'[]')
+	SELECT tsrange(f.start_date::timestamp,f.end_date::timestamp+interval '1 day','[]')
 	INTO festival_range
 	FROM festival f
 	JOIN ticket t ON t.festival_id=f.festival_id
@@ -87,8 +88,14 @@ CREATE OR REPLACE FUNCTION auto_total_price() RETURNS TRIGGER AS $$
 BEGIN
 
 	UPDATE orders o
-	SET total_price=(
+	SET 
+	total_price=(
 		SELECT SUM(i.price*i.quantity) 
+		FROM order_item i
+		WHERE i.order_id=NEW.order_id
+	),
+	amount=(
+		SELECT SUM(i.quantity)
 		FROM order_item i
 		WHERE i.order_id=NEW.order_id
 	)
@@ -105,6 +112,7 @@ AFTER INSERT OR UPDATE ON order_item
 FOR EACH ROW
 EXECUTE FUNCTION auto_total_price();
 
+CREATE OR REPLACE 
 
 CREATE OR REPLACE FUNCTION membership_card_eligibility() RETURNS TRIGGER AS $$
 DECLARE

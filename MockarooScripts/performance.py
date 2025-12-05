@@ -27,11 +27,11 @@ def performance_insert(cur,count=1000):
 
         for fp_id,performer_id,festival_id,fest_period in festival_performer_list:
                 
-            period_date_time_lower=datetime.combine(fest_period.lower, time.min)
-            period_date_time_upper=datetime.combine(fest_period.upper, time.max)
+            period_date_time_lower=datetime.combine(fest_period.lower, time.min).replace(second=0,microsecond=0)
+            period_date_time_upper=datetime.combine(fest_period.upper, time.max).replace(second=0,microsecond=0)
             start_time,end_time=helper.make_random_period(period_date_time_lower,period_date_time_upper)
 
-            overlap=any(helper.is_there_overlap(period_date_time_lower,period_date_time_upper,s,e) for s,e in performer_schedule[performer_id])
+            overlap=any(helper.is_there_overlap_performance(period_date_time_lower,period_date_time_upper,s,e) for s,e in performer_schedule[performer_id])
                 
             if overlap:
                 continue
@@ -39,12 +39,12 @@ def performance_insert(cur,count=1000):
             random.shuffle(stage_id_list)
                 
             for stage_id in stage_id_list:
-                overlap=any(helper.is_there_overlap(start_time,end_time,s,e)for s,e in stage_schedule[stage_id])
+                overlap=any(helper.is_there_overlap_performance(start_time,end_time,s,e)for s,e in stage_schedule[stage_id])
 
                 if overlap:
                     continue
                     
-                interval = DateTimeRange(start_time.replace(second=0, microsecond=0),end_time.replace(second=0, microsecond=0),bounds='[]')    
+                interval = DateTimeRange(start_time.replace(second=0,microsecond=0),end_time.replace(second=0,microsecond=0),bounds='[)')    
                 batch_insert.append((interval,stage_id,fp_id))
                 stage_schedule[stage_id].append((start_time, end_time))
                 performer_schedule[performer_id].append((start_time, end_time))

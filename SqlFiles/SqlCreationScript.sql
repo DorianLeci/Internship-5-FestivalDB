@@ -174,9 +174,9 @@ CREATE TABLE ticket(
 
 CREATE TABLE orders(
 	order_id SERIAL PRIMARY KEY,
-	amount INT NOT NULL,
+	amount INT,
 	time_of_purchase TIMESTAMP NOT NULL,
-	total_price NUMERIC NOT NULL,
+	total_price NUMERIC,
 	visitor_id INT NOT NULL REFERENCES visitor(visitor_id) ON DELETE SET NULL
 	
 );
@@ -189,6 +189,7 @@ CREATE TABLE order_item(
 	ticket_id INT NOT NULL REFERENCES ticket(ticket_id)
 	
 );
+
 
 CREATE TYPE staff_role AS ENUM ('organizator','tehnicar','zastitar','volonter');
 
