@@ -2,6 +2,7 @@
 import random
 import helper
 from datetime import datetime,time
+from psycopg2.extras import DateTimeRange
 
 def performance_insert(cur,count=1000):
     cur.execute("SELECT COUNT(*) FROM performance")
@@ -43,8 +44,8 @@ def performance_insert(cur,count=1000):
                 if overlap:
                     continue
                     
-                    
-                batch_insert.append((f"[{start_time.replace(second=0,microsecond=0)},{end_time.replace(second=0,microsecond=0)}]",stage_id,fp_id))
+                interval = DateTimeRange(start_time.replace(second=0, microsecond=0),end_time.replace(second=0, microsecond=0),bounds='[]')    
+                batch_insert.append((interval,stage_id,fp_id))
                 stage_schedule[stage_id].append((start_time, end_time))
                 performer_schedule[performer_id].append((start_time, end_time))
                 break
