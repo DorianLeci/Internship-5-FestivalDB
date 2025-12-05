@@ -222,7 +222,7 @@ DROP COLUMN festival_id;
 CREATE TABLE festival_staff(
 	festival_id INT NOT NULL REFERENCES festival(festival_id),
 	staff_id INT NOT NULL REFERENCES staff(staff_id),
-	festival_date DATERANGE,
+	festival_period DATERANGE,
 	
 	PRIMARY KEY(festival_id,staff_id)
 );
@@ -231,7 +231,7 @@ ALTER TABLE festival_staff
 ADD CONSTRAINT no_overlaping_festivals_for_staff
 	EXCLUDE USING gist(
 		staff_id WITH =,
-		festival_date WITH &&
+		festival_period WITH &&
 	);
 
 

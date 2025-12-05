@@ -13,7 +13,7 @@ import performance
 import ticket
 import order
 import staff
-
+import festival_staff
 
 def get_data(cur,count=1000):   
     country.country_insert(cur)
@@ -28,6 +28,7 @@ def get_data(cur,count=1000):
     ticket.ticket_insert(cur)
     order.order_insert(cur)
     staff.staff_insert(cur)
+    festival_staff.festival_staff_insert(cur)
 
 
 conn=psycopg2.connect(host="localhost",dbname="Internship-5-FestivalDB",user="postgres",password="postgres")

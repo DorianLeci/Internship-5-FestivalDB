@@ -2,35 +2,32 @@ import random
 import helper
 
 def festival_performer_insert(cur,count=1000):
-    batch_insert=[]
 
-    cur.execute("SELECT festival_id,start_date,end_date FROM festival")
-    festival_list=cur.fetchall()
+    cur.execute("SELECT COUNT(*) FROM festival_performer")
 
-    cur.execute("SELECT performer_id FROM performer")
-    performer_id_list = [row[0] for row in cur.fetchall()]
+    if(cur.fetchone()[0]==0):
+        batch_insert=[]
 
-    performer_schedule={performer_id:[] for performer_id in performer_id_list}
+        cur.execute("SELECT festival_id,start_date,end_date FROM festival")
+        festival_list=cur.fetchall()
 
-    for (fes_id,fes_start,fes_end) in festival_list:
-        
-        random.shuffle(performer_id_list)
+        cur.execute("SELECT performer_id FROM performer")
+        performer_id_list = [row[0] for row in cur.fetchall()]
 
-        for perf_id in performer_id_list:
+        performer_schedule={performer_id:[] for performer_id in performer_id_list}
 
-            conflict=False
+        for (fes_id,fes_start,fes_end) in festival_list:
+            
+            random.shuffle(performer_id_list)
 
-            if(performer_schedule[perf_id]):
-                for (start_date,end_date) in performer_schedule[perf_id]:
+            availible_performers=[p for p in performer_id_list 
+                if not any(helper.is_there_overlap(fes_start,fes_end,start_date,end_date) for start_date,end_date in performer_schedule[p])]
+            
+            chosen_performer=random.choice(availible_performers)
 
-                    if helper.is_there_overlap(fes_start,fes_end,start_date,end_date):
-                        conflict=True
-                        break
-                        
-            if(conflict==False):
-                performer_schedule[perf_id].append((fes_start,fes_end))
-                batch_insert.append((fes_id,perf_id))               
+            performer_schedule[chosen_performer].append((fes_start,fes_end))
+            batch_insert.append((fes_id,chosen_performer))               
 
 
 
-    cur.executemany("INSERT INTO public.festival_performer (festival_id,performer_id) VALUES (%s,%s) ON CONFLICT (festival_id,performer_id) DO NOTHING",batch_insert)
+        cur.executemany("INSERT INTO public.festival_performer (festival_id,performer_id) VALUES (%s,%s) ON CONFLICT (festival_id,performer_id) DO NOTHING",batch_insert)
