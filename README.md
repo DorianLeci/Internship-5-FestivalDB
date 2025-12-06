@@ -8,9 +8,11 @@ cd Internship-5-FestivalDB
 ```
 After positioning inside project folder you will see the folder SqlFiles which you must open in PgAdmin.
 Inside there is 
+</br>
 1)<b>SqlCreationScript.sql</b> for creating database tables and adding constraints.
 2) <b>TriggerFunctions.sql</b> for adding triggers to tables.
 3)<b>QueryToDatabase.sql</b> for checking how database work with 15 querys.
+</br>
 
 Before running any of sql scripts in pgAdmin,you must create database with name 
 ```
