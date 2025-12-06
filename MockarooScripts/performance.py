@@ -59,5 +59,8 @@ def generate_expected_visitors(festival_id,cur):
     cur.execute("SELECT capacity from festival WHERE festival_id= (%s)",(festival_id,))
 
     capacity=cur.fetchone()[0]
+    
+    if(capacity<100):
+        capacity=100
 
     return random.randint(100,capacity)

@@ -138,10 +138,10 @@ BEGIN
 	IF distinct_festivals<=3 OR total_spent<600 THEN
 		RAISE EXCEPTION 'Posljetitelj ne može imati člansku iskaznicu (distinct_festivals: %),(total_spent: %)',
 		distinct_festivals,total_spent;
-
+	END IF;
+	
 	RETURN NEW;
 	
-	END IF;
 END
 $$ LANGUAGE plpgsql;
 

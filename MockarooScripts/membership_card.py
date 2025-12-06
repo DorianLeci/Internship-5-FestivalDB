@@ -1,6 +1,6 @@
 
 import random
-from datetime import datetime
+from datetime import datetime,timedelta
 from dateutil.relativedelta import relativedelta
 
 
@@ -9,7 +9,7 @@ def membership_card_insert(cur,count=1000):
 
     if(cur.fetchone()[0]==0):
         
-        cur.execute("""SELECT o.visitor_id
+        cur.execute("""SELECT o.visitor_id,MAX(o.time_of_purchase)
                     FROM order_item oi
                     JOIN ticket t on t.ticket_id=oi.ticket_id
                     JOIN orders o ON o.order_id=oi.order_id
@@ -18,9 +18,18 @@ def membership_card_insert(cur,count=1000):
                     COUNT(DISTINCT t.festival_id)>3
 					""")
         
-        cur.execute()
-        eligible_users=cur.fecthall()
+        eligible_visitors=cur.fetchall()
 
-        batch_insert=[(user,datetime.now()) for user in eligible_users]
-                     
-        cur.executemany("INSERT INTO ")
+        if(eligible_visitors):
+
+            for visitor_id,last_purchase in eligible_visitors:
+                if(last_purchase>datetime.now() - timedelta(days=6*10)):
+                    status="istekla"
+                    activation_date=None
+                
+                else:
+                    status="Aktivna"
+                    activation_date=last_purchase
+                            
+                cur.execute("INSERT INTO public.membership_card (date_of_activation,status,visitor_id) VALUES(%s,%s,%s)",
+                                (activation_date,status,visitor_id))

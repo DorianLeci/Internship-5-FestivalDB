@@ -18,6 +18,7 @@ import workshop
 import visitor_workshop
 import mentor
 import workshop_mentor
+import membership_card
 
 def get_data(cur,count=1000):   
     country.country_insert(cur)
@@ -37,6 +38,7 @@ def get_data(cur,count=1000):
     visitor_workshop.visitor_workshop_insert(cur)
     mentor.mentor_insert(cur)
     workshop_mentor.workshop_mentor_insert(cur)
+    membership_card.membership_card_insert(cur)
 
 
 
