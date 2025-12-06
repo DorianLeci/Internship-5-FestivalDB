@@ -6,11 +6,13 @@
 git clone git@github.com:DorianLeci/Internship-5-FestivalDB.git
 cd Internship-5-FestivalDB
 ```
-After positioning inside project folder you will see the folder SqlFiles which you must open in PgAdmin.
+After positioning inside project folder you will see the folder SqlFiles which you must open in PgAdmin.</br>
 Inside there is 
 </br>
 1)<b>SqlCreationScript.sql</b> for creating database tables and adding constraints.
+</br>
 2) <b>TriggerFunctions.sql</b> for adding triggers to tables.
+</br>
 3)<b>QueryToDatabase.sql</b> for checking how database work with 15 querys.
 </br>
 
