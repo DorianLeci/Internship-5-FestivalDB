@@ -53,6 +53,7 @@ CREATE OR REPLACE FUNCTION check_ticket_purchase_time() RETURNS TRIGGER AS $$
 DECLARE 
 	purchase_time TIMESTAMP;
 	festival_range tsrange;
+	festival_start DATE;
 
 BEGIN
 	SELECT o.time_of_purchase
@@ -60,12 +61,16 @@ BEGIN
 	FROM orders o
 	WHERE o.order_id=NEW.order_id;
 	
-	SELECT tsrange(f.start_date::timestamp,f.end_date::timestamp+interval '1 day','[]')
-	INTO festival_range
+	SELECT tsrange(f.start_date::timestamp,f.end_date::timestamp+interval '1 day','[]'),f.start_date
+	INTO festival_range,festival_start
 	FROM festival f
 	JOIN ticket t ON t.festival_id=f.festival_id
 	WHERE t.ticket_id=NEW.ticket_id;
 
+	IF festival_start>CURRENT_DATE THEN
+		RETURN NEW;
+	END IF;
+	
 	IF NOT (festival_range @> purchase_time) THEN 
 	RAISE EXCEPTION 'Kupovina mora biti unutar trajanja festivala';
 	

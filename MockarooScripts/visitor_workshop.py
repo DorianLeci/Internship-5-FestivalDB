@@ -9,37 +9,40 @@ def visitor_workshop_insert(cur,count=1000):
     if(cur.fetchone()[0]==0):
         batch_insert=[]
 
-        cur.execute("SELECT workshop_id,start_time,duration,festival_id FROM workshop")
+        cur.execute("SELECT workshop_id,start_time,duration,festival_id,capacity FROM workshop")
         workshop_list=cur.fetchall()
 
         cur.execute("SELECT visitor_id FROM visitor")
         visitor_id_list = [row[0] for row in cur.fetchall()]
 
         visitor_schedule={visitor_id:[] for visitor_id in visitor_id_list}
+
         enrollment_counter={}
+        capacity_counter={}
+
+        visitor_festivals_dict=get_visitor_festivals(cur)
+
 
         for visitor_id in visitor_id_list:
             
-            visitor_festivals=get_visitor_festivals(cur).get(visitor_id,[])
-
+            visitor_festivals=visitor_festivals_dict.get(visitor_id,[])
+            
             availible_workshops=[w for w in workshop_list if w[3] in visitor_festivals]
 
-            random.shuffle(availible_workshops)
             num_workshops=random.randint(1,5)
 
-            for _,start_time,duration,_ in availible_workshops:
+            for _,start_time,duration,_,_ in availible_workshops:
 
                 availible_workshops_filtered = [ w for w in availible_workshops if not any(helper.is_there_overlap(w[1], w[1]+w[2], s, e) 
                                                                                            for s, e in visitor_schedule[visitor_id])]
-
 
                 if(not availible_workshops_filtered):
                     continue
 
                 chosen_workshop=random.choice(availible_workshops_filtered)
-                enrollment_counter.setdefault(chosen_workshop[0],0)
+                set_default(enrollment_counter,capacity_counter,chosen_workshop)
 
-                if(not can_enroll(chosen_workshop[0],cur,enrollment_counter[chosen_workshop[0]])):
+                if(not can_enroll(cur,enrollment_counter[chosen_workshop[0]],capacity_counter[chosen_workshop[4]])):
                     continue
                 
                 enrollment_time=start_time-timedelta(days=random.randint(1,5))
@@ -86,10 +89,11 @@ def get_status(now,start,end):
         return "prijavljen"
     
 
-def can_enroll(workshop_id,cur,enrollment_counter):
-
-    cur.execute("""SELECT capacity FROM workshop w WHERE w.workshop_id=%s""",(workshop_id,))
-
-    capacity=cur.fetchone()[0]
+def can_enroll(cur,enrollment_counter,capacity):
 
     return enrollment_counter<capacity
+
+def set_default(enrollment_counter,capacity_counter,chosen_workshop):
+
+    enrollment_counter.setdefault(chosen_workshop[0],0)
+    capacity_counter.setdefault(chosen_workshop[4],0)

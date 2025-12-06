@@ -17,6 +17,7 @@ import festival_staff
 import workshop
 import visitor_workshop
 import mentor
+import workshop_mentor
 
 def get_data(cur,count=1000):   
     country.country_insert(cur)
@@ -35,6 +36,8 @@ def get_data(cur,count=1000):
     workshop.workshop_insert(cur)
     visitor_workshop.visitor_workshop_insert(cur)
     mentor.mentor_insert(cur)
+    workshop_mentor.workshop_mentor_insert(cur)
+
 
 
 conn=psycopg2.connect(host="localhost",dbname="Internship-5-FestivalDB",user="postgres",password="postgres")

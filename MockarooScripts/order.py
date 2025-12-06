@@ -2,6 +2,7 @@ import auto_directory
 import json
 import random
 import helper
+from datetime import date
 
 def order_insert(cur,count=1000):
     cur.execute("SELECT COUNT(*) FROM orders")
@@ -26,6 +27,9 @@ def order_insert(cur,count=1000):
 
             fest_start,fest_end=get_festival_period(cur,ticket_id)
             purchase_time=helper.generate_purchase_time(fest_start,fest_end)
+
+            if(purchase_time.date()>date.today()):
+                purchase_time=date.today()
 
             cur.execute("INSERT INTO public.orders (order_id,time_of_purchase,visitor_id) VALUES (%s,%s,%s)",
                         (order["order_id"],purchase_time,visitor_id))
