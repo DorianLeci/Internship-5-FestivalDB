@@ -193,8 +193,8 @@ BEGIN
 	FROM workshop w
 	WHERE w.workshop_id=NEW.workshop_id;
 	
-	IF NEW.status IN ('prijavljen','ceka_na_potvrdu') THEN
-		IF curr_enrollment_count>workshop_capacity THEN
+	IF NEW.status IN ('prijavljen','ceka_na_potvrdu','prisustvovao') THEN
+		IF curr_enrollment_count>=workshop_capacity THEN
 				RAISE EXCEPTION 'Radionica je popunjena do kraja (kapacitet: %)',workshop_capacity;
 
 		END IF;

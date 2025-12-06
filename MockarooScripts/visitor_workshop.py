@@ -29,7 +29,6 @@ def visitor_workshop_insert(cur,count=1000):
             
             availible_workshops=[w for w in workshop_list if w[3] in visitor_festivals]
 
-            num_workshops=random.randint(1,5)
 
             for _,start_time,duration,_,_ in availible_workshops:
 
@@ -38,21 +37,22 @@ def visitor_workshop_insert(cur,count=1000):
 
                 if(not availible_workshops_filtered):
                     continue
-
+                
                 chosen_workshop=random.choice(availible_workshops_filtered)
                 set_default(enrollment_counter,capacity_counter,chosen_workshop)
 
-                if(not can_enroll(cur,enrollment_counter[chosen_workshop[0]],capacity_counter[chosen_workshop[4]])):
+                if(not can_enroll(cur,enrollment_counter[chosen_workshop[0]],capacity_counter[chosen_workshop[0]])):
                     continue
                 
                 enrollment_time=start_time-timedelta(days=random.randint(1,5))
                 status=get_status(datetime.now(),chosen_workshop[1],chosen_workshop[1]+chosen_workshop[2])
 
-                if(status=="prijavljen" or status=="ceka_na_potvrdu"):
+                if(status=="prijavljen" or status=="ceka_na_potvrdu" or status=="prisustvovao"):
 
                     enrollment_counter[chosen_workshop[0]]+=1
 
                 batch_insert.append((chosen_workshop[0],visitor_id,enrollment_time,status))
+                availible_workshops.remove(chosen_workshop)
 
 
         cur.executemany("INSERT INTO public.visitor_workshop (workshop_id,visitor_id,enrollment_time,status) VALUES (%s,%s,%s,%s) " \
@@ -76,7 +76,7 @@ def get_visitor_festivals(cur):
 
 def get_status(now,start,end):
 
-    if now<start and random.random()<0.1:
+    if now<start and random.random()<0.03:
         return "otkazao"
     
     if now<start:
@@ -96,4 +96,4 @@ def can_enroll(cur,enrollment_counter,capacity):
 def set_default(enrollment_counter,capacity_counter,chosen_workshop):
 
     enrollment_counter.setdefault(chosen_workshop[0],0)
-    capacity_counter.setdefault(chosen_workshop[4],0)
+    capacity_counter.setdefault(chosen_workshop[0],chosen_workshop[4])

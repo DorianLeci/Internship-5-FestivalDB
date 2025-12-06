@@ -1,0 +1,18 @@
+SELECT *
+FROM workshop w
+JOIN festival f ON f.festival_id = w.festival_id
+WHERE w.difficulty = 'napredna'
+  AND (EXTRACT(YEAR FROM f.start_date) = 2025 OR EXTRACT(YEAR FROM f.end_date) = 2025)
+ORDER BY CURRENT_ENROLLED DESC
+LIMIT 10;
+
+SELECT pe.name AS performer_name,f.name AS festival_name,s.name AS stage_name,lower(p.performance_period) AS performance_start
+FROM performance p
+JOIN festival_performer fp ON fp.festival_performer_id=p.festival_performer_id
+JOIN performer pe ON pe.performer_id=fp.performer_id
+JOIN stage s ON s.stage_id=p.stage_id
+JOIN festival f ON f.festival_id=s.festival_id
+WHERE p.expected_visitors>10000
+LIMIT 100
+
+
