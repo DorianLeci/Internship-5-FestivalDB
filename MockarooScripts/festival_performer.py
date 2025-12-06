@@ -23,6 +23,9 @@ def festival_performer_insert(cur,count=1000):
             availible_performers=[p for p in performer_id_list 
                 if not any(helper.is_there_overlap(fes_start,fes_end,start_date,end_date) for start_date,end_date in performer_schedule[p])]
             
+            if(not availible_performers):
+                continue
+            
             chosen_performer=random.choice(availible_performers)
 
             performer_schedule[chosen_performer].append((fes_start,fes_end))

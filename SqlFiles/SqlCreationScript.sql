@@ -143,6 +143,7 @@ CREATE TABLE performance(
 	performance_id SERIAL PRIMARY KEY,
 	performance_period TSRANGE NOT NULL,
 	stage_id INT NOT NULL REFERENCES stage(stage_id),
+	expected_visitors INT DEFAULT 0,
 	
 	festival_performer_id INT NOT NULL REFERENCES festival_performer(festival_performer_id)
 );
@@ -261,8 +262,13 @@ CREATE TABLE workshop(
 	festival_id INT NOT NULL REFERENCES festival(festival_id)
 );
 
+ALTER TABLE workshop
+ADD COLUMN start_time TIMESTAMP;
 
-CREATE TYPE enrollment_status AS ENUM('prijavljen','otkazao','čeka_na_potvrdu','prisustvovao');
+ALTER TABLE workshop
+ADD COLUMN current_enrolled INT DEFAULT 0;
+
+CREATE TYPE enrollment_status AS ENUM('prijavljen','otkazao','ceka_na_potvrdu','prisustvovao');
 
 CREATE TABLE visitor_workshop(
 	workshop_id INT NOT NULL REFERENCES workshop(workshop_id),
@@ -271,8 +277,47 @@ CREATE TABLE visitor_workshop(
 	PRIMARY KEY(visitor_id,workshop_id),
 
 	enrollment_time TIMESTAMP NOT NULL,
-	status enrollment_status NOT NULL DEFAULT 'čeka_na_potvrdu'
+	status enrollment_status NOT NULL DEFAULT 'ceka_na_potvrdu'
 );
+
+
+CREATE TYPE area_of_expertise AS ENUM (
+    'Gitarist', 'Bubnjar', 'Basist', 'Pijanist',
+    'Solo_vokal', 'Back_vokal', 'Producent', 'Audio_inzenjer',
+    'Instruktor_glazbe', 'Mentor_plesa', 'Voditelj_radionice',
+    'Koordinator_radionica', 'Logistika', 'Marketing'
+);
+
+CREATE TABLE mentor(
+	mentor_id SERIAL PRIMARY KEY,
+	performer_id INT REFERENCES performer(performer_id),
+	staff_id INT REFERENCES staff(staff_id),
+	birth_date DATE,
+	expertise_area area_of_expertise,
+	years_of_experience INT
+	
+	CHECK((performer_id IS NOT NULL AND staff_id IS NULL)OR
+	(performer_id IS NULL AND staff_id IS NOT NULL)),
+
+	CHECK(EXTRACT(YEAR FROM AGE(birth_date))>=18 AND years_of_experience>=2)
+);
+
+ALTER TABLE mentor
+ADD CONSTRAINT performer_id_unique UNIQUE(performer_id);
+
+ALTER TABLE mentor
+ADD CONSTRAINT staff_id_unique UNIQUE(staff_id);
+
+
+CREATE TABLE workshop_mentor(
+	workshop_id INT REFERENCES workshop(workshop_id),
+	mentor_id INT REFERENCES mentor(mentor_id),
+
+	PRIMARY KEY(workshop_id,mentor_id)
+);
+
+
+
 
 
 

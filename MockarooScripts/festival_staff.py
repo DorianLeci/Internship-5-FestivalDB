@@ -23,6 +23,9 @@ def festival_staff_insert(cur,count=1000):
             availible_staff=[s for s in staff_id_list 
             if not any(helper.is_there_overlap(fes_start,fes_end,start_date,end_date) for start_date,end_date in staff_schedule[s])]
 
+            if(not availible_staff):
+                continue
+            
             chosen_staff=random.choice(availible_staff)
 
             staff_schedule[chosen_staff].append((fes_start,fes_end))

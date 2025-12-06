@@ -45,9 +45,19 @@ def performance_insert(cur,count=1000):
                     continue
                     
                 interval = DateTimeRange(start_time.replace(second=0,microsecond=0),end_time.replace(second=0,microsecond=0),bounds='[)')    
-                batch_insert.append((interval,stage_id,fp_id))
+
+                expected_visitors=generate_expected_visitors(festival_id,cur)
+
+                batch_insert.append((interval,stage_id,expected_visitors,fp_id))
                 stage_schedule[stage_id].append((start_time, end_time))
                 performer_schedule[performer_id].append((start_time, end_time))
                 break
         
-        cur.executemany("INSERT INTO public.performance (performance_period,stage_id,festival_performer_id) VALUES (%s,%s,%s)",batch_insert)
+        cur.executemany("INSERT INTO public.performance (performance_period,stage_id,expected_visitors,festival_performer_id) VALUES (%s,%s,%s,%s)",batch_insert)
+
+def generate_expected_visitors(festival_id,cur):
+    cur.execute("SELECT capacity from festival WHERE festival_id= (%s)",(festival_id,))
+
+    capacity=cur.fetchone()[0]
+
+    return random.randint(100,capacity)

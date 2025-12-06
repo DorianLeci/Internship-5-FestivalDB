@@ -112,8 +112,6 @@ AFTER INSERT OR UPDATE ON order_item
 FOR EACH ROW
 EXECUTE FUNCTION auto_total_price();
 
-CREATE OR REPLACE 
-
 CREATE OR REPLACE FUNCTION membership_card_eligibility() RETURNS TRIGGER AS $$
 DECLARE
 	distinct_festivals INT;
@@ -185,13 +183,21 @@ DECLARE
 	curr_enrollment_count INT;
 	workshop_capacity INT;
 BEGIN
-	SELECT COUNT(*)
-	INTO curr_enrollment_count
-	FROM visitor_workshop v
-	WHERE v.workshop_id=NEW.workshop_id AND v.status IN ('prijavljen','čeka na povtrdu');
+	SELECT current_enrolled,capacity 
+	INTO curr_enrollment_count,workshop_capacity
+	FROM workshop w
+	WHERE w.workshop_id=NEW.workshop_id;
+	
+	IF NEW.status IN ('prijavljen','ceka_na_potvrdu') THEN
+		IF curr_enrollment_count>workshop_capacity THEN
+				RAISE EXCEPTION 'Radionica je popunjena do kraja (kapacitet: %)',workshop_capacity;
 
-	IF(curr_enrollment_count>=(SELECT capacity INTO workshop_capacity FROM workshop)) THEN
-		RAISE EXCEPTION 'Radionica je popunjena do kraja (kapacitet: %)',workshop_capacity;
+		END IF;
+
+		UPDATE workshop w
+		SET current_enrolled=current_enrolled+1
+		WHERE workshop_id=NEW.workshop_id;
+		
 	END IF;
 
 	RETURN NEW;
@@ -209,7 +215,7 @@ BEGIN
 	IF NEW.start_date>CURRENT_DATE THEN
 		NEW.status='Planiran';
 
-	ELSEIF NEW.start_date<=CURRENT_DATE AND NEW.end_date>=CURRENT_DATE THEN
+	ELSIF NEW.start_date<=CURRENT_DATE AND NEW.end_date>=CURRENT_DATE THEN
 		NEW.status='Aktivan';
 	ELSE
 		NEW.status='Zavrsen';
