@@ -39,8 +39,8 @@ def mentor_insert(cur,count=1000):
             else:
                 staff=random.choice(staff_id_list)
                 cur.execute("""
-                INSERT INTO mentor (mentor_id, staff_id, birth_date, expertise_area, years_of_experience)
-                VALUES (%s, %s, %s, %s, %s)
-                """,(m["mentor_id"],staff,m["birth_date"],m["expertise_area"],m["years_of_experience"]))
+                INSERT INTO mentor (mentor_id, staff_id,expertise_area, years_of_experience)
+                VALUES (%s, %s, %s, %s)
+                """,(m["mentor_id"],staff,m["expertise_area"],m["years_of_experience"]))
 
                 staff_id_list.remove(staff)

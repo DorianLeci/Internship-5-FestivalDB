@@ -20,7 +20,7 @@ def workshop_insert(cur,count=1000):
 
             festival=random.choice(festival_list)
             start_time=helper.generate_purchase_time(festival[1],festival[2])
-            duration=timedelta(minutes=random.randint(30,180))
+            duration=generate_random_interval()
 
             cur.execute("""INSERT INTO public.workshop (workshop_id,name,capacity,type,difficulty,duration,prior_knowledge_required,festival_id,start_time)
                         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)""",(w["workshop_id"],w["name"],w["capacity"],w["type"],w["difficulty"],duration,
