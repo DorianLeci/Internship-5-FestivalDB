@@ -21,7 +21,7 @@ Before running any of sql scripts in pgAdmin,you must create database with name
 Internship-5-FestivalDB
 ```
 
-After creating database and running all scripts in main directory (after you type ```cd Internship-5-FestivalDB```) you must create python virtual enviroment so you can install requirements for running "script.py" which automatically inserts data from json to created database.
+After creating database and running SqlCreationScript and TriggerFunctions (after you type ```cd Internship-5-FestivalDB```) you must create python virtual enviroment in main directory so you can install requirements for running "script.py" which automatically inserts data from json to created database.
 
 Steps:
 
